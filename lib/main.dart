@@ -1,3 +1,4 @@
+import 'package:alert_eco/screens/historique_page.dart';
 import 'package:alert_eco/screens/sign_up_page.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
         useMaterial3: true,
       ),
-      home: SignUpPage()
+      //home: SignUpPage()
+      home: HistoriqueSignalementsPage()
     );
   }
 }
