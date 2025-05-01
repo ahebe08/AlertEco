@@ -6,6 +6,8 @@ class Signalement {
   final String description;
   final DateTime date;
   final String statut;
+  final String? photo;         // Peut être une URL ou un chemin local
+  final String localisation;   // Ex : "Quartier Bellevue, Dakar"
 
   Signalement({
     required this.id,
@@ -13,10 +15,12 @@ class Signalement {
     required this.description,
     required this.date,
     required this.statut,
+    this.photo,
+    required this.localisation,
   });
 
   static Color getStatutColor(String statut) {
-    switch (statut) {
+    switch (statut.toLowerCase()) {
       case 'en attente':
         return const Color(0xFFF25C34);
       case 'en cours':
@@ -35,7 +39,7 @@ class Signalement {
   }
 }
 
-// Exemples de données avec DateTime
+// Exemple de données
 List<Signalement> signalementsTest = [
   Signalement(
     id: '1',
@@ -43,6 +47,8 @@ List<Signalement> signalementsTest = [
     description: 'Tas de déchets près du marché.',
     date: DateTime(2025, 4, 28),
     statut: 'en attente',
+    localisation: 'Marché central, Dakar',
+    photo: 'assets/images/Decharge.jpg',
   ),
   Signalement(
     id: '2',
@@ -50,12 +56,17 @@ List<Signalement> signalementsTest = [
     description: 'Nids de poule sur la route principale.',
     date: DateTime(2025, 4, 20),
     statut: 'résolu',
+    localisation: 'Avenue Blaise Diagne, Dakar',
+    photo: 'assets/images/Route-Endom.jpg',
   ),
   Signalement(
     id: '3',
-    titre: 'Pollution rivière',
-    description: 'Déversement d’huile dans la rivière.',
-    date: DateTime(2025, 4, 18),
+    titre: 'Pollution de la rivière',
+    description: 'Déversement de liquide suspect dans la rivière.',
+    date: DateTime(2025, 4, 15),
     statut: 'en cours',
+    localisation: 'Rivière Fass, Thiès',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Pollution_-_Rio_Tiete_-_panoramio.jpg/640px-Pollution_-_Rio_Tiete_-_panoramio.jpg',
+    //photo: 'assets/images/Water_pollution.jpeg',
   ),
 ];
