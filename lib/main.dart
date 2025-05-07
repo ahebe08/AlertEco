@@ -18,8 +18,12 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
         useMaterial3: true,
       ),
-      //home: SignUpPage()
-      home: HistoriqueSignalementsPage()
+      home: SignUpPage(),
+      //home: HistoriqueSignalementsPage()
+      routes: {
+        '/historiquesignalement': (context) => HistoriqueSignalementsPage(),
+        '/signup': (context) => SignUpPage(),
+      },
     );
   }
 }
