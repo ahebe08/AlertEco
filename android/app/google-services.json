@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "407671081965",
+    "project_id": "alerteco-2c60b",
+    "storage_bucket": "alerteco-2c60b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407671081965:android:708049ca63f2cea60535e4",
+        "android_client_info": {
+          "package_name": "com.example.alert_eco"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1Bp7TVavSaOTDRgvn9BNJDphIsNz9KYk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
