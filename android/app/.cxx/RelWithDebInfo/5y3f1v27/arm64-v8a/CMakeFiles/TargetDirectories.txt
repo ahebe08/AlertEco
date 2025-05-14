@@ -1,0 +1,2 @@
+C:/src/FlutterProjects/alert_eco/android/app/.cxx/RelWithDebInfo/5y3f1v27/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/src/FlutterProjects/alert_eco/android/app/.cxx/RelWithDebInfo/5y3f1v27/arm64-v8a/CMakeFiles/rebuild_cache.dir
