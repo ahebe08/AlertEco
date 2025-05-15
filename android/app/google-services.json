@@ -1,13 +1,14 @@
 {
   "project_info": {
-    "project_number": "407671081965",
-    "project_id": "alerteco-2c60b",
-    "storage_bucket": "alerteco-2c60b.firebasestorage.app"
+    "project_number": "309150573696",
+    "firebase_url": "https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "alerteco-e155a",
+    "storage_bucket": "alerteco-e155a.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:407671081965:android:708049ca63f2cea60535e4",
+        "mobilesdk_app_id": "1:309150573696:android:b7080c43b88b247d927265",
         "android_client_info": {
           "package_name": "com.example.alert_eco"
         }
@@ -15,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA1Bp7TVavSaOTDRgvn9BNJDphIsNz9KYk"
+          "current_key": "AIzaSyD8D2urj_xaP8Y9JEvR7ThvKArXkgd-qqI"
         }
       ],
       "services": {
