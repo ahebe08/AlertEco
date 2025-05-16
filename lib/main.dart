@@ -5,6 +5,7 @@ import 'package:alert_eco/screens/historique_page.dart';
 import 'package:alert_eco/screens/sign_up_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // void main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
@@ -15,9 +16,10 @@ import 'package:flutter/material.dart';
 // }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Nécessaire avant Firebase
+  WidgetsFlutterBinding.ensureInitialized();
   runZonedGuarded(() async {
     try {
+      await dotenv.load(fileName: ".env");
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );

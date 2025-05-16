@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -17,10 +18,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -49,23 +47,34 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD8D2urj_xaP8Y9JEvR7ThvKArXkgd-qqI',
-    appId: '1:309150573696:android:b7080c43b88b247d927265',
+  static final FirebaseOptions android = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '',
     messagingSenderId: '309150573696',
     projectId: 'alerteco-e155a',
     databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'alerteco-e155a.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDFUbmYuZ4W_DJYCbtp89N3EU8g7iTumDM',
-    appId: '1:309150573696:ios:c5fa7e96575e1de3927265',
+  static final FirebaseOptions ios = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_IOS_APP_ID'] ?? '',
     messagingSenderId: '309150573696',
     projectId: 'alerteco-e155a',
     databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'alerteco-e155a.firebasestorage.app',
     iosBundleId: 'com.example.alertEco',
+  );
+
+  static FirebaseOptions web = FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_WEB_APP_ID'] ?? '',
+    messagingSenderId: '309150573696',
+    projectId: 'alerteco-e155a',
+    authDomain: 'alerteco-e155a.firebaseapp.com',
+    databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
+    storageBucket: 'alerteco-e155a.firebasestorage.app',
+    measurementId: 'G-HHPJ4KSHMC',
   );
 
 }
