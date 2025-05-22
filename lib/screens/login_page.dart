@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers pour les champs
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
-  final TextEditingController _confpasswordController = TextEditingController();
 
   bool _obscurePassword = true;
 
@@ -37,26 +34,13 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               SizedBox(height: 20),
               Text(
-                'Créer un compte',
+                'Connexion',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1D4D30),
                 ),
                 textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 30),
-              _buildTextField(
-                controller: _nameController,
-                label: 'Nom complet',
-                icon: Icons.person,
-              ),
-              SizedBox(height: 20),
-              _buildTextField(
-                controller: _emailController,
-                label: 'Adresse e-mail',
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
               ),
               SizedBox(height: 20),
               _buildTextField(
@@ -72,15 +56,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 icon: Icons.lock,
                 isPassword: true,
               ),
-              SizedBox(height: 20),
-              _buildTextField(
-                controller: _confpasswordController,
-                label: 'Confirmer Mot de passe',
-                icon: Icons.lock,
-                isPassword: true,
-              ),
               SizedBox(height: 30),
               ElevatedButton(
+                //onPressed: _submitForm,
+                // onPressed: () {
+                //   Navigator.pushNamed(context, "/historiquesignalement");
+                // },
                 onPressed: () {
                   Navigator.pushNamed(context, "/nav");
                 },
@@ -92,22 +73,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 child: Text(
-                  "S'inscrire",
+                  "Se connecter",
                   style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-              SizedBox(height: 15),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context,
-                      "/login"); // Remplacez par votre route de connexion
-                },
-                child: Text(
-                  'Déjà inscrit ? Se connecter',
-                  style: TextStyle(
-                    color: Color(0xFF1D4D30),
-                    decoration: TextDecoration.underline,
-                  ),
                 ),
               ),
             ],

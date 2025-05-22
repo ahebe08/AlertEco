@@ -127,17 +127,6 @@ class _CreateReportPageState extends State<CreateReportPage> {
         };
       }
 
-      // await FirebaseFirestore.instance.collection('signalements').add({
-      //   'description': _descriptionController.text,
-      //   'imageUrl': imageUrl,
-      //   'localisation': location,
-      //   'status': 'En attente',
-      //   'type': _selectedCategory,
-      //   'userId': FirebaseAuth.instance.currentUser!.uid,
-      //   'creeLe': FieldValue.serverTimestamp(),
-      //   'modifieLe': FieldValue.serverTimestamp(),
-      // });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Signalement envoyé !')),
       );

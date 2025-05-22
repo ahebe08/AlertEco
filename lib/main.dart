@@ -4,6 +4,7 @@ import 'package:alert_eco/firebase_options.dart';
 import 'package:alert_eco/screens/create_signal.dart';
 import 'package:alert_eco/screens/historique_page.dart';
 import 'package:alert_eco/screens/home_page.dart';
+import 'package:alert_eco/screens/login_page.dart';
 import 'package:alert_eco/screens/notification_page.dart';
 import 'package:alert_eco/screens/sign_up_page.dart';
 import 'package:alert_eco/widgets/navbar_widget.dart';
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
         '/nav': (context) => NavBar(),
         '/create_signal': (context) => CreateReportPage(),
         '/notif': (context) => NotificationPage(),
+        '/login': (context) => LoginPage(),
       },
     );
   }
