@@ -66,8 +66,11 @@ class _SignUpPageState extends State<SignUpPage> {
               SizedBox(height: 30),
               ElevatedButton(
                 //onPressed: _submitForm,
+                // onPressed: () {
+                //   Navigator.pushNamed(context, "/historiquesignalement");
+                // },
                 onPressed: () {
-                  Navigator.pushNamed(context, "/historiquesignalement");
+                  Navigator.pushNamed(context, "/nav");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF1D4D30),

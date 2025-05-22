@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:alert_eco/firebase_options.dart';
+import 'package:alert_eco/screens/create_signal.dart';
 import 'package:alert_eco/screens/historique_page.dart';
+import 'package:alert_eco/screens/home_page.dart';
+import 'package:alert_eco/screens/notification_page.dart';
 import 'package:alert_eco/screens/sign_up_page.dart';
+import 'package:alert_eco/widgets/navbar_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -48,6 +52,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/historiquesignalement': (context) => HistoriqueSignalementsPage(),
         '/signup': (context) => SignUpPage(),
+        '/home': (context) => HomePage(),
+        '/nav': (context) => NavBar(),
+        '/create_signal': (context) => CreateReportPage(),
+        '/notif': (context) => NotificationPage(),
       },
     );
   }
