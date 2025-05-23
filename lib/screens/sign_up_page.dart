@@ -96,20 +96,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
-              SizedBox(height: 15),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context,
-                      "/login"); // Remplacez par votre route de connexion
-                },
-                child: Text(
-                  'Déjà inscrit ? Se connecter',
-                  style: TextStyle(
-                    color: Color(0xFF1D4D30),
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
