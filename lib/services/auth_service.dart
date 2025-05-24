@@ -1,6 +1,7 @@
 import 'package:bcrypt/bcrypt.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -232,14 +233,36 @@ class AuthService {
     }
   }
 
-  /// Déconnexion
-  static Future<void> logout() async {
+  // /// Déconnexion
+  // static Future<void> logout() async {
+  //   try {
+  //     await _auth.signOut();
+  //     await _clearUserSession();
+  //     _currentUserData = null;
+  //   } catch (e) {
+  //     print('Erreur lors de la déconnexion: $e');
+  //   }
+  // }
+
+  /// Déconnexion de l'utilisateur et redirection vers la page principale
+  static Future<void> logout(BuildContext context) async {
     try {
+      // Déconnexion Firebase
       await _auth.signOut();
+
+      // Nettoyer SharedPreferences
       await _clearUserSession();
+
+      // Réinitialiser les données locales
       _currentUserData = null;
+
+      // Redirection vers la page principale
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/', // nom de la route principale (à adapter si différent)
+        (Route<dynamic> route) => false,
+      );
     } catch (e) {
-      print('Erreur lors de la déconnexion: $e');
+      print('Erreur lors de la déconnexion : $e');
     }
   }
 
