@@ -4,27 +4,24 @@ import 'package:alert_eco/firebase_options.dart';
 import 'package:alert_eco/screens/create_signal.dart';
 import 'package:alert_eco/screens/historique_page.dart';
 import 'package:alert_eco/screens/home_page.dart';
-import 'package:alert_eco/screens/login_page.dart';
+import 'package:alert_eco/screens/login_pageee.dart';
+// import 'package:alert_eco/screens/login_pagee.dart';
+// import 'package:alert_eco/screens/login_page.dart';
 import 'package:alert_eco/screens/notification_page.dart';
 import 'package:alert_eco/screens/sign_up_page.dart';
+import 'package:alert_eco/widgets/auth_checker.dart';
 import 'package:alert_eco/widgets/navbar_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-//   runApp(const MyApp());
-// }
-
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
     try {
       await dotenv.load(fileName: ".env");
+      // print("API KEY: ${dotenv.env['FIREBASE_ANDROID_API_KEY']}"); // Doit afficher une valeur
+
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
@@ -48,8 +45,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
         useMaterial3: true,
       ),
-      home: SignUpPage(),
-      //home: HistoriqueSignalementsPage()
+      //home: LoginPage(),
+      home: AuthChecker(),
       routes: {
         '/historiquesignalement': (context) => HistoriqueSignalementsPage(),
         '/signup': (context) => SignUpPage(),
