@@ -1,0 +1,1 @@
+C:\src\FlutterProjects\alert_eco\build\app\intermediates\cxx\RelWithDebInfo\693f6nb5\obj\arm64-v8a

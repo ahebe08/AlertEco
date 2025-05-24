@@ -1,3 +1,4 @@
+import 'package:alert_eco/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -64,13 +65,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _viewUserReports() async {
-    // Navigation vers la page des signalements de l'utilisateur
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => UserReportsPage(userId: userData['userId']),
-    //   ),
-    // );
     Navigator.pushNamed(context, "/historiquesignalement");
   }
 
@@ -86,7 +80,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: const Text('Annuler'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              AuthService.logout(context);
+            },
             child: const Text('Déconnecter',
                 style: TextStyle(color: Color(0xFFF25C34))),
           )
@@ -125,9 +121,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         : (userData['photoUrl'] != null
                             ? NetworkImage(userData['photoUrl']!)
                             : null),
-                    child: userData['photoUrl'] == null && _selectedImage == null
-                        ? const Icon(Icons.person, size: 60, color: Colors.white)
-                        : null,
+                    child:
+                        userData['photoUrl'] == null && _selectedImage == null
+                            ? const Icon(Icons.person,
+                                size: 60, color: Colors.white)
+                            : null,
                   ),
                   Positioned(
                     bottom: 0,
@@ -208,8 +206,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   const SizedBox(height: 15),
                   _buildInfoItem(Icons.person, 'Nom complet', userData['nom']),
                   _buildInfoItem(Icons.email, 'Email', userData['email']),
-                  _buildInfoItem(Icons.phone, 'Téléphone', userData['telephone']),
-                  _buildInfoItem(Icons.calendar_today, 'Membre depuis', 
+                  _buildInfoItem(
+                      Icons.phone, 'Téléphone', userData['telephone']),
+                  _buildInfoItem(Icons.calendar_today, 'Membre depuis',
                       _formatDate(userData['creeLe'])),
                 ],
               ),
@@ -247,6 +246,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF25C34),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
                 onPressed: _logout,
@@ -345,7 +345,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.initState();
     _nameController = TextEditingController(text: widget.userData['nom']);
     _emailController = TextEditingController(text: widget.userData['email']);
-    _phoneController = TextEditingController(text: widget.userData['telephone']);
+    _phoneController =
+        TextEditingController(text: widget.userData['telephone']);
   }
 
   Future<void> _pickImage() async {
@@ -380,7 +381,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   'nom': _nameController.text,
                   'email': _emailController.text,
                   'telephone': _phoneController.text,
-                  'photoUrl': _selectedImage != null ? _selectedImage!.path : widget.userData['photoUrl'],
+                  'photoUrl': _selectedImage != null
+                      ? _selectedImage!.path
+                      : widget.userData['photoUrl'],
                 });
               }
             },
@@ -411,8 +414,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           : (widget.userData['photoUrl'] != null
                               ? NetworkImage(widget.userData['photoUrl']!)
                               : null),
-                      child: widget.userData['photoUrl'] == null && _selectedImage == null
-                          ? const Icon(Icons.person, size: 60, color: Colors.white)
+                      child: widget.userData['photoUrl'] == null &&
+                              _selectedImage == null
+                          ? const Icon(Icons.person,
+                              size: 60, color: Colors.white)
                           : null,
                     ),
                     Positioned(
