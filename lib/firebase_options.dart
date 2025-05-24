@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
     appId: dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '',
     messagingSenderId: '309150573696',
     projectId: 'alerteco-e155a',
-    databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
+    // databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'alerteco-e155a.firebasestorage.app',
   );
 
@@ -61,7 +61,7 @@ class DefaultFirebaseOptions {
     appId: dotenv.env['FIREBASE_IOS_APP_ID'] ?? '',
     messagingSenderId: '309150573696',
     projectId: 'alerteco-e155a',
-    databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
+    // databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'alerteco-e155a.firebasestorage.app',
     iosBundleId: 'com.example.alertEco',
   );
@@ -72,9 +72,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '309150573696',
     projectId: 'alerteco-e155a',
     authDomain: 'alerteco-e155a.firebaseapp.com',
-    databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
+    // databaseURL: 'https://alerteco-e155a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'alerteco-e155a.firebasestorage.app',
     measurementId: 'G-HHPJ4KSHMC',
   );
-
 }

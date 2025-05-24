@@ -1,3 +1,4 @@
+import 'package:alert_eco/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -9,6 +10,7 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   // Controllers pour les champs
   final TextEditingController _nameController = TextEditingController();
@@ -28,14 +30,14 @@ class _SignUpPageState extends State<SignUpPage> {
           key: _formKey,
           child: ListView(
             children: [
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               Center(
                 child: Image.asset(
-                  'assets/images/logo.png', // Remplacez par le bon chemin de votre logo
+                  'assets/images/logo.png',
                   height: 160,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'Créer un compte',
                 style: TextStyle(
@@ -45,55 +47,94 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 30),
-              _buildTextField(
+              const SizedBox(height: 30),
+              _buildUnderlinedTextField(
                 controller: _nameController,
                 label: 'Nom complet',
                 icon: Icons.person,
+                validator: (value) =>
+                    value!.isEmpty ? 'Ce champ est requis' : null,
               ),
-              SizedBox(height: 20),
-              _buildTextField(
+              const SizedBox(height: 20),
+              _buildUnderlinedTextField(
                 controller: _emailController,
                 label: 'Adresse e-mail',
                 icon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value!.isEmpty) return 'Ce champ est requis';
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                      .hasMatch(value)) {
+                    return 'Entrez une adresse email valide';
+                  }
+                  return null;
+                },
               ),
-              SizedBox(height: 20),
-              _buildTextField(
+              const SizedBox(height: 20),
+              _buildUnderlinedTextField(
                 controller: _telephoneController,
                 label: 'Téléphone',
                 icon: Icons.phone,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value!.isEmpty) return 'Ce champ est requis';
+                  // if (!RegExp(r'^[+0-9]{10,13}$').hasMatch(value)) {
+                  if (!RegExp(r'^^(?:\+225\s?)?(01|05|07|25)\d{8}$').hasMatch(value)) {
+                    return 'Entrez un numéro valide';
+                  }
+                  return null;
+                },
               ),
-              SizedBox(height: 20),
-              _buildTextField(
+              const SizedBox(height: 20),
+              _buildUnderlinedTextField(
                 controller: _passwordController,
                 label: 'Mot de passe',
                 icon: Icons.lock,
                 isPassword: true,
+                validator: (value) {
+                  if (value!.isEmpty) return 'Ce champ est requis';
+                  if (value.length < 6) return 'Minimum 6 caractères';
+                  return null;
+                },
               ),
-              SizedBox(height: 20),
-              _buildTextField(
+              const SizedBox(height: 20),
+              _buildUnderlinedTextField(
                 controller: _confpasswordController,
                 label: 'Confirmer Mot de passe',
                 icon: Icons.lock,
                 isPassword: true,
-              ),
-              SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, "/nav");
+                validator: (value) {
+                  if (value != _passwordController.text) {
+                    return 'Les mots de passe ne correspondent pas';
+                  }
+                  return null;
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1D4D30),
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+              ),
+              const SizedBox(height: 30),
+              _isLoading
+                  ? Center(
+                      child:
+                          CircularProgressIndicator(color: Color(0xFF1D4D30)))
+                  : ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF1D4D30),
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        "S'inscrire",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
                 child: Text(
-                  "S'inscrire",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  'Déjà un compte ? Connectez-vous',
+                  style: TextStyle(color: Color(0xFF1D4D30)),
                 ),
               ),
             ],
@@ -103,19 +144,19 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildUnderlinedTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword ? _obscurePassword : false,
       keyboardType: keyboardType,
-      validator: (value) =>
-          value == null || value.isEmpty ? 'Ce champ est requis' : null,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Color(0xFF1D4D30)),
@@ -130,19 +171,59 @@ class _SignUpPageState extends State<SignUpPage> {
                 },
               )
             : null,
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF1D4D30)),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF1D4D30), width: 2),
+        ),
       ),
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Traitement de l'inscription
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Inscription en cours...'),
-          backgroundColor: Color(0xFFF25C34),
-        ),
-      );
+      setState(() => _isLoading = true);
+
+      try {
+        final result = await AuthService.register(
+          nom: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          telephone: _telephoneController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        if (result['success'] == true) {
+          Navigator.pushReplacementNamed(context, '/nav');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text(result['message'] ?? 'Erreur lors de l\'inscription'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Une erreur est survenue: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _telephoneController.dispose();
+    _confpasswordController.dispose();
+    super.dispose();
   }
 }
