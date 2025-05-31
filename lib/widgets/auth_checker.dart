@@ -22,14 +22,15 @@ class _AuthCheckerState extends State<AuthChecker> {
     try {
       // 🔍 Vérification si l'utilisateur est déjà connecté
       bool isLoggedIn = await AuthService.isLoggedIn();
-      
+
       if (isLoggedIn) {
         // ✅ Utilisateur connecté -> Redirection vers HomePage
-        print("🎉 Utilisateur déjà connecté : ${AuthService.currentUserData?['nom']}");
-        
+        print(
+            "🎉 Utilisateur déjà connecté : ${AuthService.currentUserData?['nom']}");
+
         // Petite pause pour éviter les erreurs de navigation
         await Future.delayed(Duration(milliseconds: 100));
-        
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -39,9 +40,9 @@ class _AuthCheckerState extends State<AuthChecker> {
       } else {
         // ❌ Utilisateur non connecté -> Redirection vers LoginPage
         print("🔐 Aucune session trouvée, redirection vers login");
-        
+
         await Future.delayed(Duration(milliseconds: 100));
-        
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -52,7 +53,7 @@ class _AuthCheckerState extends State<AuthChecker> {
     } catch (e) {
       // 🚨 En cas d'erreur, rediriger vers login par défaut
       print("❌ Erreur lors de la vérification d'auth: $e");
-      
+
       if (mounted) {
         Navigator.pushReplacement(
           context,

@@ -472,6 +472,39 @@ class AuthService {
     }
   }
 
+//   /// Changer le mot de passe
+//   static Future<Map<String, dynamic>> changePassword(
+//       String oldPassword, String newPassword) async {
+//     try {
+//       if (_auth.currentUser == null || _currentUserData == null) {
+//         return {'success': false, 'message': 'Utilisateur non connecté'};
+//       }
+
+//       String storedPassword = _currentUserData!['motdepasse'] ?? '';
+//       if (storedPassword != oldPassword) {
+//         return {'success': false, 'message': 'Ancien mot de passe incorrect'};
+//       }
+
+//       await _auth.currentUser!.updatePassword(newPassword);
+//       await _firestore
+//           .collection('users')
+//           .doc(_auth.currentUser!.uid)
+//           .update({'motdepasse': newPassword});
+
+//       _currentUserData!['motdepasse'] = newPassword;
+
+//       return {
+//         'success': true,
+//         'message': 'Mot de passe mis à jour avec succès'
+//       };
+//     } catch (e) {
+//       return {
+//         'success': false,
+//         'message':
+//             'Erreur lors de la mise à jour du mot de passe: ${e.toString()}'
+//       };
+//     }
+//   }
   /// Changer le mot de passe
   static Future<Map<String, dynamic>> changePassword(
       String oldPassword, String newPassword) async {
@@ -480,23 +513,38 @@ class AuthService {
         return {'success': false, 'message': 'Utilisateur non connecté'};
       }
 
-      String storedPassword = _currentUserData!['motdepasse'] ?? '';
-      if (storedPassword != oldPassword) {
+      // Récupérer le mot de passe haché stocké
+      String storedHashedPassword = _currentUserData!['motdepasse'] ?? '';
+
+      // Vérifier l'ancien mot de passe avec BCrypt
+      bool isOldPasswordValid =
+          BCrypt.checkpw(oldPassword, storedHashedPassword);
+      if (!isOldPasswordValid) {
         return {'success': false, 'message': 'Ancien mot de passe incorrect'};
       }
 
+      // Hacher le nouveau mot de passe
+      String newHashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+      // Mettre à jour le mot de passe dans Firebase Auth
       await _auth.currentUser!.updatePassword(newPassword);
+
+      // Mettre à jour le mot de passe haché dans Firestore
       await _firestore
           .collection('users')
           .doc(_auth.currentUser!.uid)
-          .update({'motdepasse': newPassword});
+          .update({'motdepasse': newHashedPassword});
 
-      _currentUserData!['motdepasse'] = newPassword;
+      // Mettre à jour les données locales
+      _currentUserData!['motdepasse'] = newHashedPassword;
 
       return {
         'success': true,
         'message': 'Mot de passe mis à jour avec succès'
       };
+    } on FirebaseAuthException catch (e) {
+      String message = _getErrorMessage(e.code);
+      return {'success': false, 'message': message};
     } catch (e) {
       return {
         'success': false,

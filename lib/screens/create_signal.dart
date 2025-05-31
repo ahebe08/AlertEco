@@ -1,10 +1,11 @@
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'dart:convert';
 
 class CreateReportPage extends StatefulWidget {
   @override
@@ -13,13 +14,15 @@ class CreateReportPage extends StatefulWidget {
 
 class _CreateReportPageState extends State<CreateReportPage> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titreController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
   File? _image;
-  String? _selectedCategory;
   Position? _currentPosition;
   bool _isLoading = false;
-  List<Map<String, dynamic>> _categories = [];
+
+  // Configuration Cloudinary - À remplacer par vos vraies valeurs
+  static const String CLOUDINARY_CLOUD_NAME = 'diyn9dglg';
+  static const String CLOUDINARY_UPLOAD_PRESET = 'alerteco';
 
   // Couleurs du projet
   final Color _darkGreen = Color(0xFF1D4D30);
@@ -31,14 +34,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
   @override
   void initState() {
     super.initState();
-    _loadCategories();
-  }
-
-  Future<void> _loadCategories() async {
-    final snapshot = await FirebaseFirestore.instance.collection('categories').get();
-    setState(() {
-      _categories = snapshot.docs.map((doc) => doc.data()).toList();
-    });
+    _getCurrentLocation(); // Récupérer automatiquement la position au démarrage
   }
 
   Future<void> _getCurrentLocation() async {
@@ -53,16 +49,18 @@ class _CreateReportPageState extends State<CreateReportPage> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw 'Permission refusée';
+          throw 'Permission GPS refusée';
         }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Permission GPS refusée définitivement';
       }
 
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       setState(() {
         _currentPosition = position;
-        _locationController.text = 
-          '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,77 +73,148 @@ class _CreateReportPageState extends State<CreateReportPage> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final pickedFile = await ImagePicker().pickImage(source: source);
+      final pickedFile = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
       if (pickedFile != null) {
         setState(() => _image = File(pickedFile.path));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: ${e.toString()}')),
+        SnackBar(
+            content: Text(
+                'Erreur lors de la sélection de l\'image: ${e.toString()}')),
       );
+    }
+  }
+
+  Future<String> _uploadImageToCloudinary(File image) async {
+    try {
+      final url = Uri.parse(
+          'https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD_NAME/image/upload');
+
+      final request = http.MultipartRequest('POST', url);
+      request.fields['upload_preset'] = CLOUDINARY_UPLOAD_PRESET;
+      request.fields['folder'] = 'reports'; // Dossier dans Cloudinary
+
+      final file = await http.MultipartFile.fromPath('file', image.path);
+      request.files.add(file);
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final jsonData = json.decode(responseData);
+        return jsonData['secure_url']; // URL sécurisée de l'image
+      } else {
+        throw 'Erreur lors de l\'upload: ${response.statusCode}';
+      }
+    } catch (e) {
+      throw 'Erreur Cloudinary: ${e.toString()}';
     }
   }
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez remplir tous les champs')),
+        SnackBar(content: Text('Veuillez remplir tous les champs requis')),
       );
       return;
     }
 
     if (_image == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ajoutez une photo')),
+        SnackBar(content: Text('Veuillez ajouter une photo')),
       );
       return;
     }
 
-    if (_currentPosition == null && _locationController.text.isEmpty) {
+    if (_currentPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Indiquez une localisation')),
+        SnackBar(
+            content: Text('Localisation requise. Veuillez activer le GPS')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      String imageUrl = await _uploadImage(_image!);
-      
-      // Gestion de la localisation
-      Map<String, double> location = {};
-      if (_currentPosition != null) {
-        location = {
-          'lat': _currentPosition!.latitude,
-          'long': _currentPosition!.longitude,
-        };
-      } else {
-        List<String> coords = _locationController.text.split(',');
-        location = {
-          'lat': double.parse(coords[0].trim()),
-          'long': double.parse(coords[1].trim()),
-        };
-      }
+      // 1. Upload de l'image vers Cloudinary
+      String imageUrl = await _uploadImageToCloudinary(_image!);
+
+      // 2. Récupération des informations utilisateur (si disponible)
+      String? userId;
+      String? userName;
+
+      // Si vous utilisez le service d'authentification
+      // userId = AuthService.currentUser?.uid;
+      // userName = AuthService.currentUserData?['nom'];
+
+      // 3. Préparation des données du signalement
+      Map<String, dynamic> reportData = {
+        'titre': _titreController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'photo': imageUrl,
+        'localisation': {
+          'latitude': _currentPosition!.latitude,
+          'longitude': _currentPosition!.longitude,
+        },
+        'statut': 'En attente', // Statut par défaut n
+        'date': FieldValue.serverTimestamp(),
+        'modifieLe': FieldValue.serverTimestamp(),
+        'userId': userId, // Peut être null si pas d'authentification
+        'userName': userName, // Peut être null
+      };
+
+      // 4. Enregistrement dans Firestore
+      DocumentReference docRef = await FirebaseFirestore.instance
+          .collection('signalements')
+          .add(reportData);
+
+      // 5. Mise à jour avec l'ID du document
+      await docRef.update({'id': docRef.id});
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signalement envoyé !')),
+        SnackBar(
+          content: Text('Signalement envoyé avec succès !'),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.pop(context);
+
+      // Retour à la page précédente
+      Navigator.pop(
+          context, true); // true indique que le signalement a été créé
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: ${e.toString()}')),
+        SnackBar(
+          content: Text('Erreur lors de l\'envoi: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  Future<String> _uploadImage(File image) async {
-    String fileName = 'reports/${DateTime.now().millisecondsSinceEpoch}.jpg';
-    Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
-    UploadTask uploadTask = storageRef.putFile(image);
-    await uploadTask.whenComplete(() => null);
-    return await storageRef.getDownloadURL();
+  // Méthode optionnelle pour obtenir l'adresse à partir des coordonnées
+  Future<String> _getAddressFromCoordinates(Position position) async {
+    try {
+      // Ici vous pouvez utiliser un service de géocodage inverse
+      // Par exemple avec le package geocoding
+      // List<Placemark> placemarks = await placemarkFromCoordinates(
+      //   position.latitude,
+      //   position.longitude
+      // );
+      // return "${placemarks.first.street}, ${placemarks.first.locality}";
+
+      // Pour l'instant, retour des coordonnées formatées
+      return "${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}";
+    } catch (e) {
+      return "Adresse non disponible";
+    }
   }
 
   Widget _buildSectionTitle(String title) {
@@ -175,21 +244,6 @@ class _CreateReportPageState extends State<CreateReportPage> {
     );
   }
 
-  Widget _buildLocationButton() {
-    return ElevatedButton.icon(
-      onPressed: _getCurrentLocation,
-      icon: Icon(Icons.gps_fixed, color: _white),
-      label: Text('Utiliser ma position actuelle'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _darkGreen,
-        padding: EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,7 +259,16 @@ class _CreateReportPageState extends State<CreateReportPage> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: _alertOrange))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: _alertOrange),
+                  SizedBox(height: 16),
+                  Text('Chargement...', style: TextStyle(color: _darkGreen)),
+                ],
+              ),
+            )
           : SingleChildScrollView(
               padding: EdgeInsets.all(16),
               child: Form(
@@ -213,46 +276,79 @@ class _CreateReportPageState extends State<CreateReportPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Section Catégorie
-                    _buildSectionTitle('Catégorie'),
-                    SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      decoration: _buildInputDecoration(
-                        'Sélectionnez une catégorie',
-                        Icons.category,
+                    // Section Localisation (information)
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _lightGreen.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _lightGreen),
                       ),
-                      value: _selectedCategory,
-                      items: _categories.map((category) {
-                        return DropdownMenuItem<String>(
-                          value: category['id'],
-                          child: Text(category['name']),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() => _selectedCategory = value);
-                      },
+                      child: Column(
+                        children: [
+                          Icon(Icons.location_on, color: _darkGreen, size: 30),
+                          SizedBox(height: 8),
+                          Text(
+                            'Localisation actuelle',
+                            style: TextStyle(
+                              color: _darkGreen,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          if (_currentPosition != null)
+                            Text(
+                              'Lat: ${_currentPosition!.latitude.toStringAsFixed(4)}\n'
+                              'Long: ${_currentPosition!.longitude.toStringAsFixed(4)}',
+                              style: TextStyle(color: _darkGreen),
+                              textAlign: TextAlign.center,
+                            )
+                          else
+                            Text(
+                              'Localisation en cours...',
+                              style: TextStyle(color: _darkGreen),
+                            ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 24),
+
+                    // Section Catégorie
+                    _buildSectionTitle('Titre *'),
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _titreController,
+                      decoration: _buildInputDecoration(
+                        'Donnez un titre à votre signalement',
+                        Icons.title,
+                      ),
+                      maxLines: 2,
+                      maxLength: 100,
                       validator: (value) {
-                        if (value == null) {
-                          return 'Sélectionnez une catégorie';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Veuillez entrer un titre';
                         }
                         return null;
                       },
                     ),
-                    SizedBox(height: 24),
-
                     // Section Description
-                    _buildSectionTitle('Description'),
+                    _buildSectionTitle('Description *'),
                     SizedBox(height: 8),
                     TextFormField(
                       controller: _descriptionController,
                       decoration: _buildInputDecoration(
-                        'Décrivez le problème',
+                        'Décrivez le problème en détail',
                         Icons.description,
                       ),
                       maxLines: 5,
+                      maxLength: 500,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Entrez une description';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Veuillez entrer une description';
+                        }
+                        if (value.trim().length < 10) {
+                          return 'La description doit contenir au moins 10 caractères';
                         }
                         return null;
                       },
@@ -260,7 +356,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
                     SizedBox(height: 24),
 
                     // Section Photo
-                    _buildSectionTitle('Photo'),
+                    _buildSectionTitle('Photo *'),
                     SizedBox(height: 8),
                     if (_image != null)
                       Container(
@@ -285,9 +381,13 @@ class _CreateReportPageState extends State<CreateReportPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.camera_alt, size: 50, color: _darkGreen),
+                              Icon(Icons.camera_alt,
+                                  size: 50, color: _darkGreen),
                               SizedBox(height: 8),
-                              Text('Aucune photo sélectionnée'),
+                              Text(
+                                'Aucune photo sélectionnée',
+                                style: TextStyle(color: _darkGreen),
+                              ),
                             ],
                           ),
                         ),
@@ -301,7 +401,8 @@ class _CreateReportPageState extends State<CreateReportPage> {
                             icon: Icon(Icons.camera_alt),
                             label: Text('Prendre une photo'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: _darkGreen, side: BorderSide(color: _darkGreen),
+                              foregroundColor: _darkGreen,
+                              side: BorderSide(color: _darkGreen),
                               padding: EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
@@ -313,72 +414,14 @@ class _CreateReportPageState extends State<CreateReportPage> {
                             icon: Icon(Icons.photo_library),
                             label: Text('Choisir une photo'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: _darkGreen, side: BorderSide(color: _darkGreen),
+                              foregroundColor: _darkGreen,
+                              side: BorderSide(color: _darkGreen),
                               padding: EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 24),
-
-                    // Section Localisation
-                    _buildSectionTitle('Localisation'),
-                    SizedBox(height: 8),
-                    
-                    // Champ de saisie manuelle
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: _buildInputDecoration(
-                        'Saisir manuellement (lat, long)',
-                        Icons.edit_location,
-                      ),
-                      keyboardType: TextInputType.text,
-                      validator: (value) {
-                        if (value!.isEmpty && _currentPosition == null) {
-                          return 'Saisissez une localisation ou utilisez le GPS';
-                        }
-                        if (value.isNotEmpty) {
-                          try {
-                            List<String> coords = value.split(',');
-                            if (coords.length != 2) throw FormatException();
-                            double.parse(coords[0].trim());
-                            double.parse(coords[1].trim());
-                          } catch (e) {
-                            return 'Format invalide. Exemple: 48.8566, 2.3522';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    
-                    // OU séparateur
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: _darkGreen.withOpacity(0.3))),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text('OU'),
-                        ),
-                        Expanded(child: Divider(color: _darkGreen.withOpacity(0.3))),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    
-                    // Bouton géolocalisation
-                    _buildLocationButton(),
-                    if (_currentPosition != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: 12),
-                        child: Text(
-                          '📍 Position enregistrée\n'
-                          'Latitude: ${_currentPosition!.latitude.toStringAsFixed(4)}\n'
-                          'Longitude: ${_currentPosition!.longitude.toStringAsFixed(4)}',
-                          style: TextStyle(color: _darkGreen),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
                     SizedBox(height: 32),
 
                     // Bouton de soumission
@@ -386,7 +429,7 @@ class _CreateReportPageState extends State<CreateReportPage> {
                       onPressed: _submitReport,
                       child: Text(
                         'Envoyer le signalement',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 18, color: _white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _alertOrange,
@@ -396,10 +439,42 @@ class _CreateReportPageState extends State<CreateReportPage> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 16),
+
+                    // Note informative
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info, color: Colors.blue, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Le signalement sera créé avec votre position actuelle',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
     );
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    _titreController.dispose();
+    super.dispose();
   }
 }

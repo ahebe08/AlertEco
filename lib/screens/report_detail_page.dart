@@ -23,9 +23,7 @@ class ReportDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy à HH:mm');
     final statusColor = _getStatusColor(report['status']);
-    final date = report['date'] is DateTime 
-        ? report['date'] 
-        : DateTime.now();
+    final date = report['date'] is DateTime ? report['date'] : DateTime.now();
 
     return Scaffold(
       appBar: AppBar(
@@ -57,7 +55,8 @@ class ReportDetailPage extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFA5D68F).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
@@ -70,7 +69,8 @@ class ReportDetailPage extends StatelessWidget {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
@@ -114,7 +114,8 @@ class ReportDetailPage extends StatelessWidget {
                 title: 'Signalé par',
                 content: report['author'],
               ),
-            if (report.containsKey('adminComment') && report['adminComment'] != null)
+            if (report.containsKey('adminComment') &&
+                report['adminComment'] != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
